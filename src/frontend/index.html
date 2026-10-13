@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BotHub</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="brand">
+            <img src="icon.png" alt="" class="logo">
+            <div>
+                <h1>BotHub</h1>
+                <p data-i18n="sub"></p>
+            </div>
+        </div>
+        <span id="status" class="pill off"></span>
+    </header>
+    <div id="toast-container" class="toast-container"></div>
+    <div id="lang-modal" class="modal-overlay" hidden>
+        <div class="modal-box">
+            <p>Choisissez votre langue / Choose your language</p>
+            <div class="modal-actions">
+                <button id="lang-fr">🇫🇷 Français</button>
+                <button id="lang-en">🇬🇧 English</button>
+            </div>
+        </div>
+    </div>
+    <div class="layout">
+        <nav>
+            <button data-tab="control" class="active" data-i18n="nav_control"></button>
+            <button data-tab="accounts" data-i18n="nav_accounts"></button>
+            <button data-tab="settings" data-i18n="nav_settings"></button>
+        </nav>
+        <main>
+            <section id="tab-control">
+                <p id="ctl-error" class="error"></p>
+                <h2 data-i18n="ctl_online"></h2>
+                <p id="panels-empty" class="muted" data-i18n="ctl_none_online"></p>
+                <div id="panels" class="panels single"></div>
+                <h2 id="offline-title" data-i18n="ctl_offline"></h2>
+                <div id="offline" class="offline"></div>
+            </section>
+
+            <section id="tab-accounts" hidden>
+                <h2 data-i18n="acc_title"></h2>
+                <p class="muted" data-i18n-html="acc_hint"></p>
+                <div class="row">
+                    <input id="acc-username" data-i18n-ph="ph_user">
+                    <input id="acc-password" type="password" data-i18n-ph="ph_pwd">
+                    <input id="acc-desc" data-i18n-ph="ph_desc">
+                    <button id="acc-add" data-i18n="btn_add"></button>
+                </div>
+                <p id="acc-error" class="error"></p>
+                <ul id="acc-list" class="list"></ul>
+
+                <h2 data-i18n="srv_title"></h2>
+                <p class="muted" data-i18n="srv_hint"></p>
+                <div id="srv-form"></div>
+                <p id="srv-error" class="error"></p>
+                <ul id="srv-list" class="list"></ul>
+
+                <h2 data-i18n="wl_title"></h2>
+                <p class="muted" data-i18n="wl_hint"></p>
+                <div class="row">
+                    <input id="wl-name" data-i18n-ph="ph_wl_name">
+                    <button id="wl-add" data-i18n="btn_add"></button>
+                </div>
+                <p id="wl-error" class="error"></p>
+                <ul id="wl-list" class="list"></ul>
+            </section>
+
+            <section id="tab-settings" hidden>
+                <h2 data-i18n="nav_settings"></h2>
+                <label class="row"><span data-i18n="set_lang"></span>
+                    <select id="set-lang"><option value="fr">Français</option><option value="en">English</option></select>
+                </label>
+                <label class="row"><span data-i18n="set_theme"></span>
+                    <select id="set-theme"><option value="dark" data-i18n="dark"></option><option value="light" data-i18n="light"></option></select>
+                </label>
+                <label class="row"><input id="set-motion" type="checkbox"> <span data-i18n="set_motion"></span></label>
+                <label class="row"><input id="set-open" type="checkbox"> <span data-i18n="set_open"></span></label>
+                <label class="row"><input id="set-reco" type="checkbox"> <span data-i18n="set_reco"></span></label>
+                <label class="row"><span data-i18n="set_initial"></span> <input id="set-initial" type="number" min="1" max="3600" class="short"></label>
+                <label class="row"><span data-i18n="set_max"></span> <input id="set-max" type="number" min="1" max="3600" class="short"></label>
+                <label class="row"><span data-i18n="set_attempts"></span> <input id="set-attempts" type="number" min="-1" max="1000" class="short"></label>
+                <label class="row"><input id="set-wl" type="checkbox"> <span data-i18n="set_wl"></span></label>
+
+                <h2 data-i18n="set_afk_title"></h2>
+                <label class="row"><input id="afk-enabled" type="checkbox"> <span data-i18n="afk_enabled"></span></label>
+                <label class="row"><span data-i18n="afk_interval"></span> <input id="afk-interval" type="number" min="5" max="3600" class="short"></label>
+                <label class="row"><input id="afk-sneak" type="checkbox"> <span data-i18n="afk_sneak"></span></label>
+                <label class="row"><input id="afk-jump" type="checkbox"> <span data-i18n="afk_jump"></span></label>
+                <label class="row"><input id="afk-chat-enabled" type="checkbox"> <span data-i18n="afk_chat"></span></label>
+                <div class="row">
+                    <input id="afk-chat-text" class="grow" data-i18n-ph="ph_afk_text">
+                </div>
+
+                <div class="row"><button id="set-save" data-i18n="btn_save"></button><span id="set-msg" class="muted"></span></div>
+
+                <h2 data-i18n="set_danger_title"></h2>
+                <p class="muted" data-i18n="set_danger_hint"></p>
+                <div class="row"><button id="set-reset" class="danger" data-i18n="btn_reset_all"></button><span id="reset-msg" class="error"></span></div>
+            </section>
+        </main>
+    </div>
+    <script src="app.js" type="module"></script>
+</body>
+</html>

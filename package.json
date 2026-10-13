@@ -1,0 +1,23 @@
+{
+  "name": "BotHub",
+  "version": "1.0.0",
+  "description": "Local Minecraft bot manager for offline/crack accounts",
+  "main": "src/backend/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/backend/index.js",
+    "dev": "nodemon src/backend/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "minecraft",
+    "bot",
+    "management"
+  ],
+  "author": "BotHub Developer",
+  "license": "MIT",
+  "dependencies": {
+    "mineflayer": "^4.39.0",
+    "ws": "^8.21.3"
+  }
+}
