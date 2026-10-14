@@ -44,6 +44,7 @@ const D = {
     disc_first: ['Déconnecte le bot avant de modifier ce compte.', 'Disconnect the bot before editing.'],
     update_available: ['Une nouvelle version de BotHub est disponible', 'A new version of BotHub is available'],
     update_see: ['Voir sur GitHub', 'See on GitHub'],
+    version_current: ['Version actuelle', 'Current version'],
     srv_title: ['Serveurs', 'Servers'],
     srv_hint: ["BotHub est développé et testé pour le serveur 2B2FR. L'ajout d'autres serveurs peut fonctionner si les commandes ci-dessous sont adaptées, mais ce n'est pas testé ni garanti.", 'BotHub is built and tested for the 2B2FR server. Adding other servers may work if the commands below are adapted accordingly, but this is untested and not guaranteed.'],
     ph_name: ['Nom (ex: 2B2FR)', 'Name (e.g. 2B2FR)'],
@@ -298,9 +299,16 @@ function loadSettings() {
 // ---------- Vérification de mise à jour ----------
 function checkForUpdate() {
     api('GET', '/api/version').then(r => {
-        if (!r || !r.updateAvailable || !r.latest) return;
+        if (!r) return;
+        // Afficher la version actuelle en discret
+        const versionDisplay = $('version-display');
+        if (versionDisplay) {
+            versionDisplay.textContent = `${t('version_current')}: ${r.current}`;
+        }
+        // Afficher la bannière si nouvelle version disponible
+        if (!r.updateAvailable || !r.latest) return;
         if (localStorage.getItem('updateDismissed') === r.latest) return;
-        $('update-banner-text').textContent = `${t('update_available')} (${r.latest})`;
+        $('update-banner-text').textContent = `${t('update_available')} (${r.current} → ${r.latest})`;
         const link = $('update-banner-link');
         link.textContent = t('update_see');
         link.href = r.url;
