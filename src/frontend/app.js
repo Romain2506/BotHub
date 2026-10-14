@@ -42,6 +42,8 @@ const D = {
     rm_pwd: ['Retirer le mot de passe', 'Remove password'],
     user_req: ['Pseudo requis.', 'Username required.'],
     disc_first: ['Déconnecte le bot avant de modifier ce compte.', 'Disconnect the bot before editing.'],
+    update_available: ['Une nouvelle version de BotHub est disponible', 'A new version of BotHub is available'],
+    update_see: ['Voir sur GitHub', 'See on GitHub'],
     srv_title: ['Serveurs', 'Servers'],
     srv_hint: ["BotHub est développé et testé pour le serveur 2B2FR. L'ajout d'autres serveurs peut fonctionner si les commandes ci-dessous sont adaptées, mais ce n'est pas testé ni garanti.", 'BotHub is built and tested for the 2B2FR server. Adding other servers may work if the commands below are adapted accordingly, but this is untested and not guaranteed.'],
     ph_name: ['Nom (ex: 2B2FR)', 'Name (e.g. 2B2FR)'],
@@ -291,6 +293,23 @@ function saveSettings() {
 
 function loadSettings() {
     api('GET', '/api/settings').then(r => applySettings(r.settings)).catch(() => {});
+}
+
+// ---------- Vérification de mise à jour ----------
+function checkForUpdate() {
+    api('GET', '/api/version').then(r => {
+        if (!r || !r.updateAvailable || !r.latest) return;
+        if (localStorage.getItem('updateDismissed') === r.latest) return;
+        $('update-banner-text').textContent = `${t('update_available')} (${r.latest})`;
+        const link = $('update-banner-link');
+        link.textContent = t('update_see');
+        link.href = r.url;
+        $('update-banner').hidden = false;
+        $('update-banner-close').addEventListener('click', () => {
+            localStorage.setItem('updateDismissed', r.latest);
+            $('update-banner').hidden = true;
+        }, { once: true });
+    }).catch(() => {});
 }
 
 function resetAll() {
@@ -721,6 +740,7 @@ function init() {
     loadAccounts();
     loadServers();
     loadWhitelist();
+    checkForUpdate();
     connectWs();
 }
 

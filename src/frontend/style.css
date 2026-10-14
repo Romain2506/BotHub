@@ -107,6 +107,12 @@ details.cmds summary { cursor: pointer; color: var(--muted); margin-bottom: .5re
 .btn-disconnect:hover:not(:disabled) { filter: brightness(1.1); opacity: 1; box-shadow: 0 2px 6px rgba(0,0,0,.35); }
 .btn-disconnect:active:not(:disabled) { filter: brightness(.9); }
 
+/* ---- Bannière de mise à jour disponible ---- */
+.update-banner { display: flex; align-items: center; gap: .6rem; background: #1d3a5f; border-bottom: 1px solid var(--border); padding: .6rem 1rem; font-size: .9rem; }
+.update-banner a { color: #8ec4ff; text-decoration: underline; }
+.update-banner button { margin-left: auto; background: none; color: var(--muted); font-size: 1.1rem; padding: 0 .3rem; }
+.update-banner button:hover { color: var(--text); opacity: 1; }
+
 /* ---- Modale de choix de langue (premier lancement) ---- */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; z-index: 2000; }
 .modal-box { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem 2rem; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,.4); }

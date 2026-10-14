@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import { AccountManager, accountManager } from './accountManager.js';
 import { botManager } from './botManager.js';
 import { handleExtraApi, handleResetApi } from './api.js';
+import { checkForUpdate } from './versionCheck.js';
 
 // Get directory names
 const __filename = fileURLToPath(import.meta.url);
@@ -176,6 +177,16 @@ function startServerOnPort(port, host) {
         }
       }
       // Réinitialisation complète (toutes les données) : déconnecte d'abord tous les bots
+      else if (pathname === '/api/version' && req.method === 'GET') {
+        try {
+          const result = await checkForUpdate();
+          res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify(result));
+        } catch (err) {
+          res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ error: err.message }));
+        }
+      }
       else if (pathname === '/api/reset' && req.method === 'DELETE') {
         botManager.disconnectAll();
         await handleResetApi(req, res, pathname);
