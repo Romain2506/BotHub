@@ -46,7 +46,7 @@ const D = {
     update_see: ['Voir sur GitHub', 'See on GitHub'],
     version_current: ['Version actuelle', 'Current version'],
     srv_title: ['Serveurs', 'Servers'],
-    srv_hint: ["BotHub est développé et testé pour le serveur 2B2FR. L'ajout d'autres serveurs peut fonctionner si les commandes ci-dessous sont adaptées, mais ce n'est pas testé ni garanti.", 'BotHub is built and tested for the 2B2FR server. Adding other servers may work if the commands below are adapted accordingly, but this is untested and not guaranteed.'],
+    srv_hint: ["Développé pour 2b2fr.org. Compatible avec d'autres serveurs si les commandes sont identiques ou correctement configurées.", 'Built for 2b2fr.org. Works with other servers if commands are identical or properly configured.'],
     ph_name: ['Nom (ex: 2B2FR)', 'Name (e.g. 2B2FR)'],
     ph_host: ['Adresse', 'Address'],
     ph_version: ['Version (auto)', 'Version (auto)'],

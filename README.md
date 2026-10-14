@@ -5,8 +5,8 @@
 
 Run multiple Minecraft bots from one dashboard: connect them to any server, chat, teleport to saved homes, auto-accept teleport requests from trusted players, and keep them from idling out with anti-AFK — all from your browser, no account data leaving your machine.
 
-> **Note:** BotHub is built and tested for the **2B2FR** server. It may work on other servers if the per-server commands are adapted in the UI, but this is untested and not guaranteed.
-> *BotHub est développé et testé pour le serveur **2B2FR**. Il peut éventuellement fonctionner sur d'autres serveurs en adaptant les commandes par serveur dans l'interface, mais ce n'est pas testé ni garanti.*
+> **Note:** BotHub is built and tested for the **2b2fr.org** server. It may work on other servers if the per-server commands are adapted in the UI, but this is untested and not guaranteed.
+> *BotHub est développé et testé pour le serveur **2b2fr.org**. Il peut éventuellement fonctionner sur d'autres serveurs en adaptant les commandes par serveur dans l'interface, mais ce n'est pas testé ni garanti.*
 
 ---
 
