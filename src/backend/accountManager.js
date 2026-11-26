@@ -468,6 +468,25 @@ export class AccountManager {
   }
 
   /**
+   * Exporte tous les comptes avec leur mot de passe EN CLAIR (pour export manuel TXT/CSV
+   * depuis les paramètres). À n'utiliser que pour une sauvegarde/export voulu par l'utilisateur :
+   * le résultat contient des mots de passe en clair.
+   * @returns {Array<{username: string, password: string, description: string}>}
+   */
+  exportAccounts() {
+    try {
+      return this.accounts.map((account) => ({
+        username: account.username,
+        password: account.password || '',
+        description: account.description || '',
+      }));
+    } catch (error) {
+      Logger.error(`Failed to export accounts: ${error.message}`);
+      return [];
+    }
+  }
+
+  /**
    * Check if an account exists
    * @param {string} accountId - ID of account to check
    * @returns {boolean} True if account exists

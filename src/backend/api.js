@@ -76,6 +76,11 @@ export async function handleExtraApi(req, res, pathname) {
       const body = await readBody(req);
       return json(200, { homes: homesStore.setDescription(parts[2], decodeURIComponent(parts[3]), body.description) });
     }
+    // Effacer toutes les coordonnées (garde les descriptions) : /api/homes/clear-coords (POST)
+    if (parts[1] === 'homes' && parts.length === 3 && parts[2] === 'clear-coords' && m === 'POST') {
+      homesStore.clearAllCoords();
+      return json(200, { success: true });
+    }
     return json(404, { error: 'Route API introuvable' });
   } catch (err) {
     return json(400, { error: err.message });

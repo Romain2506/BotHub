@@ -34,6 +34,7 @@ function clean(data, base = {}) {
 
   // Commandes propres au serveur (vide = valeur par défaut)
   const loginCommand = cmdField(data, base, 'loginCommand');
+  const registerCommand = cmdField(data, base, 'registerCommand');
   const homesCommand = cmdField(data, base, 'homesCommand');
   const homeCommand = cmdField(data, base, 'homeCommand');
   const homesRegex = cmdField(data, base, 'homesRegex', 200);
@@ -47,6 +48,9 @@ function clean(data, base = {}) {
   // Liste blanche : détection des demandes de TP et des messages privés
   const tpRequestRegex = cmdField(data, base, 'tpRequestRegex', 200);
   const tpAcceptCommand = cmdField(data, base, 'tpAcceptCommand');
+  if (tpAcceptCommand && !tpAcceptCommand.includes('{name}')) {
+    throw new Error('La commande d\'acceptation de TP doit contenir {name}');
+  }
   const tpaCommand = cmdField(data, base, 'tpaCommand');
   const privateMessageRegex = cmdField(data, base, 'privateMessageRegex', 200);
   const privateMessageCommand = cmdField(data, base, 'privateMessageCommand');
@@ -64,7 +68,7 @@ function clean(data, base = {}) {
   }
 
   return {
-    name, host, port, version, loginCommand, homesCommand, homeCommand, homesRegex,
+    name, host, port, version, loginCommand, registerCommand, homesCommand, homeCommand, homesRegex,
     tpRequestRegex, tpAcceptCommand, tpaCommand, privateMessageRegex, privateMessageCommand,
   };
 }

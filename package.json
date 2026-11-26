@@ -1,6 +1,6 @@
 {
   "name": "BotHub",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Local Minecraft bot manager for offline/crack accounts",
   "main": "src/backend/index.js",
   "type": "module",

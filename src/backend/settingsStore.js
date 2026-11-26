@@ -20,6 +20,7 @@ const DEFAULTS = {
   logLevel: 'info',
   reducedMotion: false,
   whitelistEnabled: true,
+  recordHomeCoords: false,
   antiAfk: {
     enabled: false,
     interval: 60000,
@@ -52,6 +53,7 @@ const RULES = {
   reconnectMaxDelay: isDelay,
   reconnectMaxAttempts: (v) => Number.isInteger(v) && v >= -1 && v <= 1000,
   whitelistEnabled: isBool,
+  recordHomeCoords: isBool,
   antiAfk: isAntiAfk,
 };
 

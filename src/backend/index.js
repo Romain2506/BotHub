@@ -43,6 +43,12 @@ function loadConfig() {
   return { ...DEFAULT_CONFIG };
 }
 
+// Options pour exécuter une commande système "silencieusement" : on capture stdout nous-mêmes,
+// et on jette stderr (sinon des erreurs comme "'wmic' n'est pas reconnu..." s'affichent dans la
+// console même quand on les attrape nous-mêmes avec un try/catch, car le sous-processus écrit
+// directement dessus par défaut).
+const SILENT_EXEC = { encoding: 'utf8', windowsHide: true, stdio: ['ignore', 'pipe', 'ignore'] };
+
 /**
  * Vérifie qu'un PID correspond à un processus node vivant
  */
@@ -55,10 +61,10 @@ function isNodeProcessAlive(pid) {
   // Protection contre la réutilisation de PID : on vérifie que c'est bien node
   try {
     if (process.platform === 'win32') {
-      const out = execSync(`tasklist /FI "PID eq ${pid}" /FO CSV /NH`, { encoding: 'utf8' });
+      const out = execSync(`tasklist /FI "PID eq ${pid}" /FO CSV /NH`, SILENT_EXEC);
       return /node(\.exe)?"/i.test(out);
     }
-    const out = execSync(`ps -p ${pid} -o comm=`, { encoding: 'utf8' });
+    const out = execSync(`ps -p ${pid} -o comm=`, SILENT_EXEC);
     return /node/i.test(out);
   } catch (e) {
     return false;
@@ -70,25 +76,64 @@ function sleepSync(ms) {
 }
 
 /**
- * Acquiert le verrou. Si une ancienne instance tourne, elle est arrêtée.
- * Si le verrou est orphelin (processus mort), il est écrasé.
+ * Teste si un port est libre en essayant de s'y mettre à l'écoute brièvement.
+ * Plus fiable que d'inspecter la ligne de commande d'un PID (wmic est absent sur certaines
+ * machines Windows récentes, et PowerShell n'est pas toujours exploitable depuis cmd.exe) :
+ * ce qui nous intéresse vraiment, c'est de savoir si QUELQU'UN écoute déjà sur NOTRE port,
+ * pas de deviner à qui appartient tel ou tel PID.
  */
-function acquireLock() {
+function isPortFree(port, host) {
+  return new Promise((resolve) => {
+    const probe = createServer();
+    probe.once('error', () => resolve(false));
+    probe.once('listening', () => probe.close(() => resolve(true)));
+    try {
+      probe.listen(port, host);
+    } catch (e) {
+      resolve(false);
+    }
+  });
+}
+
+/**
+ * Acquiert le verrou. Si une ancienne instance tourne ET occupe réellement notre port,
+ * elle est arrêtée (graduellement, puis de force si besoin). Si le verrou est orphelin
+ * (processus mort, ou PID réutilisé par un autre programme qui n'occupe pas notre port),
+ * il est simplement écrasé.
+ */
+async function acquireLock(config) {
   try {
     const dataDir = join(process.cwd(), 'data');
     if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true });
 
     if (existsSync(LOCK_FILE)) {
       const oldPid = parseInt(readFileSync(LOCK_FILE, 'utf8').trim(), 10);
-      if (Number.isInteger(oldPid) && oldPid !== process.pid && isNodeProcessAlive(oldPid)) {
+      const reallyConflicting = Number.isInteger(oldPid) && oldPid !== process.pid
+        && isNodeProcessAlive(oldPid) && !(await isPortFree(config.port, config.host));
+
+      if (reallyConflicting) {
         console.log(`Ancienne instance détectée (PID ${oldPid}), arrêt en cours...`);
         try { process.kill(oldPid, 'SIGTERM'); } catch (e) {}
-        for (let i = 0; i < 20 && isNodeProcessAlive(oldPid); i++) sleepSync(250);
-        if (isNodeProcessAlive(oldPid)) {
-          console.error(`Impossible d'arrêter le PID ${oldPid}. Fais: taskkill /PID ${oldPid} /F`);
+        for (let i = 0; i < 20 && !(await isPortFree(config.port, config.host)); i++) sleepSync(250);
+        if (!(await isPortFree(config.port, config.host))) {
+          // L'ancienne instance ne répond pas à l'arrêt normal (ex: trop de bots à déconnecter) :
+          // on tente un arrêt forcé au niveau du système avant d'abandonner.
+          console.log(`PID ${oldPid} toujours actif, arrêt forcé en cours...`);
+          try {
+            if (process.platform === 'win32') execSync(`taskkill /PID ${oldPid} /F /T`, SILENT_EXEC);
+            else process.kill(oldPid, 'SIGKILL');
+          } catch (e) { /* ignore */ }
+          for (let i = 0; i < 8 && !(await isPortFree(config.port, config.host)); i++) sleepSync(250);
+        }
+        if (!(await isPortFree(config.port, config.host))) {
+          console.error(`Impossible de libérer le port ${config.port} (PID ${oldPid}).`);
+          console.error('Cause probable : cette ancienne instance tourne avec des droits plus élevés (ex: "Exécuter en tant qu\'administrateur") que cette fenêtre.');
+          console.error(`Ferme-la manuellement, ou relance ce script en administrateur, puis réessaie. (taskkill /PID ${oldPid} /F)`);
           return false;
         }
       } else {
+        // Processus mort, PID réutilisé par un autre programme, ou notre port est de toute
+        // façon déjà libre : le verrou est obsolète, on peut l'ignorer sans rien tenter de tuer.
         console.log('Verrou orphelin détecté, nettoyage.');
       }
       try { unlinkSync(LOCK_FILE); } catch (e) {}
@@ -318,6 +363,37 @@ async function handleAccountApi(req, res, pathname) {
       return;
     }
 
+    // Export des comptes (pseudo + mot de passe en clair) en fichier téléchargeable.
+    // Placé AVANT la route générique /api/accounts/:id pour que "export" ne soit pas
+    // confondu avec un identifiant de compte.
+    if (pathname === "/api/accounts/export" && req.method === "GET") {
+      const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+      const format = (url.searchParams.get('format') || 'txt').toLowerCase();
+      const list = accountManager.exportAccounts();
+      const stamp = new Date().toISOString().slice(0, 10);
+      if (format === 'csv') {
+        const esc = (s) => `"${String(s).replace(/"/g, '""')}"`;
+        // Séparateur ";" : plus fiable que "," pour l'ouverture directe dans Excel en français.
+        const rows = [['Pseudo', 'Mot de passe', 'Description'], ...list.map((a) => [a.username, a.password, a.description || ''])];
+        const csv = `\uFEFF${rows.map((r) => r.map(esc).join(';')).join('\r\n')}\r\n`;
+        res.writeHead(200, {
+          'Content-Type': 'text/csv; charset=utf-8',
+          'Content-Disposition': `attachment; filename="bothub-comptes-${stamp}.csv"`,
+        });
+        res.end(csv);
+      } else {
+        const lines = list.length
+          ? list.map((a) => `${a.username}:${a.password}${a.description ? ` (${a.description})` : ''}`)
+          : ['Aucun compte.'];
+        res.writeHead(200, {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Content-Disposition': `attachment; filename="bothub-comptes-${stamp}.txt"`,
+        });
+        res.end(`${lines.join('\r\n')}\r\n`);
+      }
+      return;
+    }
+
     // Handle different endpoints
     if (pathname === "/api/accounts" && req.method === "GET") {
       // Get all accounts (without passwords)
@@ -408,12 +484,12 @@ async function handleAccountApi(req, res, pathname) {
  * Starts the server using configuration from settings
  * @returns {Promise<{server: import('http').Server, wss: WebSocketServer, port: number}>}
  */
-async function startServer() {
-  // Load configuration
-  const config = loadConfig();
-  const { port, host } = config;
+async function startServer(config) {
+  // Load configuration (déjà chargée par l'appelant si fournie, pour cohérence avec acquireLock)
+  const cfg = config || loadConfig();
+  const { port, host } = cfg;
 
-  console.log(`Starting BotHub with configuration:`, config);
+  console.log(`Starting BotHub with configuration:`, cfg);
 
   try {
     const result = await startServerOnPort(port, host);
@@ -435,13 +511,15 @@ let wssInstance = null;
 
 async function initializeServer() {
   try {
+    const config = loadConfig();
+
     // First, try to acquire lock to prevent multiple instances
-    if (!acquireLock()) {
+    if (!(await acquireLock(config))) {
       process.exit(1);
     }
 
     // Start the server
-    const result = await startServer();
+    const result = await startServer(config);
     serverInstance = result.server;
     wssInstance = result.wss;
     return result;

@@ -6,6 +6,7 @@
     <title>BotHub</title>
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/reicon@latest"></script>
 </head>
 <body>
     <header>
@@ -38,6 +39,7 @@
         <nav>
             <button data-tab="control" class="active" data-i18n="nav_control"></button>
             <button data-tab="accounts" data-i18n="nav_accounts"></button>
+            <button data-tab="map" data-i18n="nav_map"></button>
             <button data-tab="settings" data-i18n="nav_settings"></button>
         </nav>
         <main>
@@ -93,6 +95,8 @@
                 <label class="row"><span data-i18n="set_max"></span> <input id="set-max" type="number" min="1" max="3600" class="short"></label>
                 <label class="row"><span data-i18n="set_attempts"></span> <input id="set-attempts" type="number" min="-1" max="1000" class="short"></label>
                 <label class="row"><input id="set-wl" type="checkbox"> <span data-i18n="set_wl"></span></label>
+                <label class="row"><input id="set-record-coords" type="checkbox"> <span data-i18n="set_record_coords"></span></label>
+                <div class="row"><button id="set-clear-coords" class="danger" data-i18n="btn_clear_coords"></button><span id="clear-coords-msg" class="muted"></span></div>
 
                 <h2 data-i18n="set_afk_title"></h2>
                 <label class="row"><input id="afk-enabled" type="checkbox"> <span data-i18n="afk_enabled"></span></label>
@@ -106,9 +110,55 @@
 
                 <div class="row"><button id="set-save" data-i18n="btn_save"></button><span id="set-msg" class="muted"></span></div>
 
+                <h2 data-i18n="set_export_title"></h2>
+                <p class="muted" data-i18n="set_export_hint"></p>
+                <div class="row">
+                    <button id="acc-export-txt" data-i18n="btn_export_txt"></button>
+                    <button id="acc-export-csv" data-i18n="btn_export_csv"></button>
+                </div>
+
                 <h2 data-i18n="set_danger_title"></h2>
                 <p class="muted" data-i18n="set_danger_hint"></p>
                 <div class="row"><button id="set-reset" class="danger" data-i18n="btn_reset_all"></button><span id="reset-msg" class="error"></span></div>
+            </section>
+
+            <section id="tab-map" hidden>
+                <h2 data-i18n="map_title"></h2>
+                <p class="muted" data-i18n="map_hint"></p>
+                <div id="map-toolbar" class="map-toolbar">
+                    <div class="map-controls">
+                        <button id="map-zoom-in" class="map-btn" aria-label="Zoom avant" title="Zoom +">+</button>
+                        <button id="map-zoom-out" class="map-btn" aria-label="Zoom arrière" title="Zoom -">−</button>
+                        <button id="map-reset" class="map-btn" aria-label="Réinitialiser la vue" title="Vue globale">⌂</button>
+                        <button id="map-export" class="map-btn" aria-label="Exporter la carte en image" title="Exporter en image">⬇</button>
+                    </div>
+                    <div id="map-dimension-switch" class="map-dimension-switch">
+                        <button class="map-dim-btn active" data-dim="overworld" data-i18n="map_dim_overworld"></button>
+                        <button class="map-dim-btn" data-dim="nether" data-i18n="map_dim_nether"></button>
+                        <button class="map-dim-btn" data-dim="end" data-i18n="map_dim_end"></button>
+                    </div>
+                    <div id="map-coords-display" class="map-coords-display">
+                        <span id="map-coords-text" data-i18n="map_click_hint"></span>
+                        <button id="map-copy-coords" class="map-btn map-copy-coords" hidden data-i18n="btn_copy"></button>
+                    </div>
+                    <div id="map-zoom-display" class="map-zoom-display"></div>
+                </div>
+                <div class="map-container">
+                    <div id="map-wrapper" class="map-wrapper" tabindex="0">
+                        <canvas id="map-canvas" class="map-canvas"></canvas>
+                        <div id="map-tooltip" class="map-tooltip hidden"></div>
+                    </div>
+                    <aside id="map-sidebar" class="map-sidebar">
+                        <div class="map-sidebar-header">
+                            <span data-i18n="map_sidebar_title"></span>
+                            <button id="map-sidebar-toggle" class="map-btn" aria-label="Masquer/afficher la liste" title="Liste des homes">☰</button>
+                        </div>
+                        <div class="map-sidebar-search-wrap">
+                            <input id="map-search" type="search" class="map-search" data-i18n-ph="map_search_ph" placeholder="">
+                        </div>
+                        <div id="map-sidebar-content" class="map-sidebar-content"></div>
+                    </aside>
+                </div>
             </section>
         </main>
     </div>
